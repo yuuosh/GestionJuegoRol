@@ -152,7 +152,7 @@ public class AppJuegoRol {
                             System.out.println("Episodio terminado. Proceso guardado. Episodio actual: "
                                 + personajeCreado.getEpisodioActual());
                         }
-                        
+
                         break;
                     }
 
@@ -280,7 +280,8 @@ public class AppJuegoRol {
                 }
 
             } catch (RuntimeException e) {
-                System.out.println("Error general " + e.getMessage());
+                    System.err.println("[ERRO NÃO TRATADO] " + e.getMessage());
+                    e.printStackTrace();
             }
         }
 
