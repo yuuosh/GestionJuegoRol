@@ -144,13 +144,16 @@ public class AppJuegoRol {
                     		break;
                     	}
                     	
-                    	try {
-                    		personajeCreado = episodioService.jugarEpisodioActual(personajeCreado.getId());
-                    		System.out.println("Episodio terminado. Proceso guardado. Episodio actual: " + personajeCreado.getEpisodioActual());
-                    	} catch (RuntimeException ex) {
-                    		System.out.println("Error general: " + ex.getMessage());
-                    	}
-                    	break;
+                    	personajeCreado = ErrorHandler.handleWithReturn(() ->
+                            episodioService.jugarEpisodioActual(personajeCreado.getId())
+                        );
+
+                        if (personajeCreado != null) {
+                            System.out.println("Episodio terminado. Proceso guardado. Episodio actual: "
+                                + personajeCreado.getEpisodioActual());
+                        }
+
+                        break;
                     }
 
 
@@ -193,9 +196,9 @@ public class AppJuegoRol {
                             break;
                         }
 
-                        try {
+                        ErrorHandler.handle(() -> {
                             String tipo = Utils.pideDatoCadena(
-                                    "¿Qué quieres añadir? (CUERDA, PALO, PIEDRA, MOJON, HOJA, BAYA): ");
+                                "¿Qué quieres añadir? (CUERDA, PALO, PIEDRA, MOJON, HOJA, BAYA): ");
                             String t = tipo.trim().toUpperCase();
 
                             Equipamiento nuevo = null;
@@ -214,24 +217,17 @@ public class AppJuegoRol {
                                 nuevo = new Baya();
                             } else {
                                 System.out.println("Tipo inválido.");
-                                break;
+                                return;
                             }
 
                             EquipamientoDto añadido = equipamientoService.añadirAlInventario(personajeCreado.getId(), nuevo);
                             System.out.println("OK: añadido -> " + añadido);
 
-                            System.out.println("\nInventario (DTO) del personaje " + personajeCreado.getNombre() + ":");
                             List<EquipamientoDto> inv = equipamientoService.listarPorPersonaje(personajeCreado.getId());
                             for (EquipamientoDto ed : inv) {
                                 System.out.println(" - " + ed);
                             }
-
-                        } catch (ReglaJuegoException ex) {
-                            System.out.println("Regla del juego: " + ex.getMessage());
-                        } catch (RuntimeException ex) {
-                            System.out.println("Error técnico: " + ex.getMessage());
-                        }
-
+                        });
                         break;
                     }
 
@@ -258,38 +254,22 @@ public class AppJuegoRol {
                             idPersonaje = Long.valueOf(Utils.pideDatoNumerico("Introduce el ID del personaje a recargar: "));
                         }
 
-                        try {
-                        	Personaje recargado = Utils.recargarPersonaje(idPersonaje);
+                        Personaje recargado = ErrorHandler.handleWithReturn(() ->
+                            Utils.recargarPersonaje(idPersonaje)
+                        );
 
-                            if (recargado.getUsuario() == null || recargado.getUsuario().getId() == null
-                                    || !recargado.getUsuario().getId().equals(usuarioLogueado.getId())) {
-                                System.out.println("Ese personaje NO pertenece al usuario logueado.");
-                                break;
-                            }
+                        if (recargado == null) break;
 
-                            personajeCreado = recargado;
-
-                            System.out.println("\n--- PERSONAJE CARGADO ---");
-                            System.out.println(personajeCreado);
-
-                            System.out.println("\n--- EQUIPO (" + personajeCreado.getEquipo().size() + ") ---");
-                            for (Equipamiento eq : personajeCreado.getEquipo()) {
-                                System.out.println(" - [" + eq.getClass().getSimpleName() + "] "
-                                        + eq.getNombre() + " (id=" + eq.getId() + ")");
-                            }
-
-                            System.out.println("\n--- CRIATURAS (" + personajeCreado.getCriaturas().size() + ") ---");
-                            for (Criatura c : personajeCreado.getCriaturas()) {
-                                System.out.println(" - [" + c.getClass().getSimpleName() + "] "
-                                        + c.getNombre() + " alias=" + c.getAlias() + " (id=" + c.getId() + ")");
-                            }
-
-                            System.out.println("\nOK: personaje recargado y relaciones verificadas.");
-
-                        } catch (RuntimeException ex) {
-                            System.out.println("Error técnico: " + ex.getMessage());
+                        if (recargado.getUsuario() == null || recargado.getUsuario().getId() == null
+                                || !recargado.getUsuario().getId().equals(usuarioLogueado.getId())) {
+                            System.out.println("Ese personaje NO pertenece al usuario logueado.");
+                            break;
                         }
 
+                        personajeCreado = recargado;
+
+                        System.out.println("\n--- PERSONAJE CARGADO ---");
+                        System.out.println(personajeCreado);
                         break;
                     }
                     
@@ -300,7 +280,8 @@ public class AppJuegoRol {
                 }
 
             } catch (RuntimeException e) {
-                System.out.println("Error general " + e.getMessage());
+                    System.err.println("[ERRO NÃO TRATADO] " + e.getMessage());
+                    e.printStackTrace();
             }
         }
 
