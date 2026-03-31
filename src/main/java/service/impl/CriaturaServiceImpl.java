@@ -2,22 +2,14 @@ package service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
-import dao.CriaturaDao;
 import dao.PersonajeDao;
-import dao.impl.CriaturaDaoImpl;
 import dao.impl.PersonajeDaoImpl;
 import dto.CriaturaDto;
 import entities.Personaje;
-import entities.criatura.Conejo;
 import entities.criatura.Criatura;
-import entities.criatura.Gusano;
-import entities.criatura.Jabali;
-import entities.criatura.Lobo;
-import entities.criatura.Mosquito;
-import entities.criatura.PezPrehistoricoGigante;
-import entities.criatura.Raton;
-import entities.criatura.Siluro;
 import exceptions.ReglaJuegoException;
 import service.CriaturaService;
 
@@ -45,6 +37,17 @@ public class CriaturaServiceImpl implements CriaturaService {
         );
     }
 
+    private static final Map<String, Supplier<Criatura>> CRIATURAS = Map.of(
+        "GUSANO", () -> new Criatura("Gusano", null, 1, 0, 70, 2, "Disparo de seda"),
+        "CONEJO", () -> new Criatura("Conejo", null, 1, 3, 50, 2, "Patada salto"),
+        "MOSQUITO", () -> new Criatura("Mosquito", null, 1, 0, 10, 10, "PicaduraFatal"),
+        "RATON", () -> new Criatura("Raton", null, 1, 0, 20, 1, "MordiscoInfeccioso"),
+        "JABALI", () -> new Criatura("Jabali", null, 11, 35, 40, 25, "Cornada"),
+        "LOBO", () -> new Criatura("Lobo", null, 1, 8, 30, 35, "Mordisco feroz"),
+        "PEZ PREHISTORICO GIGANTE", () -> new Criatura("PezPrehistoricoGigante", null, 1, 9, 35, 40, "Mordisco Devastador"),
+        "SILURO", () -> new Criatura("Siluro", null, 10, 0, 30, 30, "Mordisco")
+    );
+
     private Criatura construirCriatura(String tipoCriatura) throws ReglaJuegoException {
         if (tipoCriatura == null || tipoCriatura.isBlank()) {
             throw new ReglaJuegoException("Tipo de criatura obligatorio.");
@@ -52,16 +55,15 @@ public class CriaturaServiceImpl implements CriaturaService {
 
         String t = tipoCriatura.trim().toUpperCase();
 
-        if ("GUSANO".equals(t)) return new Gusano();
-        if ("CONEJO".equals(t)) return new Conejo();
-        if ("MOSQUITO".equals(t)) return new Mosquito();
-        if ("RATON".equals(t)) return new Raton();
-        if ("JABALI".equals(t)) return new Jabali();
-        if ("LOBO".equals(t)) return new Lobo();
-        if ("PEZ PREHISTORICO GIGANTE".equals(t)) return new PezPrehistoricoGigante();
-        if ("SILURO".equals(t)) return new Siluro();
+        Supplier<Criatura> supplier = CRIATURAS.get(t);
+        if (supplier == null) {
+            throw new ReglaJuegoException(
+                "Tipo inválido: " + tipoCriatura +
+                " (usa GUSANO / CONEJO / MOSQUITO / RATON / JABALI / LOBO / PEZ PREHISTORICO GIGANTE / SILURO)"
+            );
+        }
 
-        throw new ReglaJuegoException("Tipo inválido: " + tipoCriatura + " (usa GUSANO / CONEJO / MOSQUITO / RATON / LOBO / PEZ PREHISTORICO GIGANTE/ SILURO)");
+        return supplier.get();
     }
 
     @Override

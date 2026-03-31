@@ -23,7 +23,7 @@ import jakarta.persistence.Table;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "tipo", discriminatorType = DiscriminatorType.STRING, length = 30)
 
-public abstract class Criatura implements Atacable, Defendible {
+public class Criatura implements Atacable, Defendible {
 
 	// TODO: MANUEL
 	// Debemos de crear criaturas:
