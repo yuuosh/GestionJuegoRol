@@ -23,7 +23,6 @@ public class ErrorHandler {
         }
     }
 
-    // 🔹 Para ações COM retorno
     public static <T> T handleWithReturn(Supplier<T> action) {
         try {
             return action.get();
